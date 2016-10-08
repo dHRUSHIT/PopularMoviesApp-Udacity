@@ -4,7 +4,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,84 +26,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment {
 
-    Set<Movie> movies = new Set<Movie>() {
-        @Override
-        public boolean add(Movie object) {
-            return false;
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends Movie> collection) {
-            return false;
-        }
-
-        @Override
-        public void clear() {
-
-        }
-
-        @Override
-        public boolean contains(Object object) {
-            return false;
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> collection) {
-            return false;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @NonNull
-        @Override
-        public Iterator<Movie> iterator() {
-            return null;
-        }
-
-        @Override
-        public boolean remove(Object object) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> collection) {
-            return false;
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> collection) {
-            return false;
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @NonNull
-        @Override
-        public Object[] toArray() {
-            return new Object[0];
-        }
-
-        @NonNull
-        @Override
-        public <T> T[] toArray(T[] array) {
-            return null;
-        }
-    }
+    Movie movies[] = new Movie[100];
     ImageListAdapter movieAdapter;
     String[] posterList;
 
@@ -175,7 +103,7 @@ public class MainActivityFragment extends Fragment {
             Log.v(TAG,"get view method");
             if(null == convertView){
                 imageView = new ImageView(context);
-                imageView.setScaleType(ImageView.ScaleType.MATRIX);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
 
             }else{
@@ -183,7 +111,7 @@ public class MainActivityFragment extends Fragment {
             }
 
             Picasso.with(context)
-                    .load(imageUrls[position])
+                    .load(movies[position].getPoster_path())
                     .error(R.drawable.loading)
                     .into(imageView);
 
@@ -286,13 +214,14 @@ public class MainActivityFragment extends Fragment {
             final String RELEASEDATE = "release_date";
             final String BASE_IMAGE_URI = "http://image.tmdb.org/t/p/";
             final String IMAGE_SIZE = "w342";
-            final boolean adult = false;
-            final boolean video = false;
-            final int[] genere_ids = null;
-            final int id = 0;
-            final int vote_count = 0;
-            final Double popularity = 0.0;
-            final Double vote_avg = 0.0;
+            final String ISADULT = "adult";
+            final String CONTAINS_VIDEO = "video";
+            final String GENRES = "genre_ids";
+            final String ID = "id";
+            final String VOTE_COUNT = "vote_count";
+            final String POPULARITY = "popularity";
+            final String AVG_VOTE = "vote_average";
+
 
             JSONObject object = new JSONObject(replyString);
             JSONArray movieArray = object.getJSONArray(RESULTS);
@@ -301,15 +230,27 @@ public class MainActivityFragment extends Fragment {
             HttpURLConnection urlImageConnection = null;
             String[] resultStrs = new String[movieArray.length()];
             for(int i=0;i<size;i++){
-                JSONObject movie = movieArray.getJSONObject(i);
+                Movie temp_movie = new Movie();
+                JSONObject jsonMovieObject = movieArray.getJSONObject(i);
 
-                String poster_path = movie.getString(POSTER_PATH);
+                String poster_path = jsonMovieObject.getString(POSTER_PATH);
                 String poster_link = BASE_IMAGE_URI+IMAGE_SIZE+poster_path;
+                temp_movie.setPoster_path(poster_link);
+
+                temp_movie.setAdult(jsonMovieObject.getBoolean(ISADULT));
+                temp_movie.setBackdrop_path(jsonMovieObject.getString(BACKDROP_PATH));
+                temp_movie.setId(jsonMovieObject.getInt(ID));
+                temp_movie.setOriginal_language(jsonMovieObject.getString(ORIGINAL_LANGUAGE));
+                temp_movie.setOriginal_title(jsonMovieObject.getString(ORIGINAL_TITLE));
+                temp_movie.setOverview(jsonMovieObject.getString(OVERVIEW));
+                temp_movie.setReleaseDate(jsonMovieObject.getString(RELEASEDATE));
+                temp_movie.setVote_avg(jsonMovieObject.getDouble(AVG_VOTE));
+
 
 
 
                 Log.v(TAG,"Built Uri : " + poster_link);
-                resultStrs[i] = poster_link;
+                movies[i] = temp_movie;
             }
 
 
